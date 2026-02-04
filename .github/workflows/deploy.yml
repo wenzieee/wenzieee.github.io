@@ -1,0 +1,53 @@
+name: Hexo Blog CI/CD
+
+# 触发条件：当 hexo-source 分支有 push 动作时触发
+on:
+  push:
+    branches:
+      - hexo-source
+
+# 任务定义
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # 使用最新的 Ubuntu 虚拟机
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          submodules: true # 如果你的主题是作为 submodule 存在的，这一行必须为 true
+
+      # 2. 配置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 推荐使用较新的 LTS 版本
+
+      # 3. 缓存 node_modules (优化点：加快构建速度)
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 4. 安装 Hexo 依赖
+      - name: Install Dependencies
+        run: npm ci # 相比 npm install，ci 更适合自动化环境，严格按照 package-lock.json 安装
+
+      # 5. 生成静态文件
+      - name: Build Hexo
+        run: npx hexo generate # 使用 npx 就不需要全局安装 hexo-cli 了
+
+      # 6. 部署到 main 分支
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3 # 这是一个业界标准的部署 Action
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # GitHub 自动生成的令牌，无需手动设置
+          publish_dir: ./public # Hexo 生成文件的目录
+          publish_branch: main  # 你的 GitHub Pages 使用的分支 (如果是 master 请改为 master)
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'deploy: auto deploy by GitHub Actions'
