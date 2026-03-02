@@ -1,5 +1,7 @@
 ---
 title: 隐藏目录与cd命令
+date: 2025-10-10 
+categories: 小知识
 ---
 
 # 隐藏目录与cd命令

@@ -1,5 +1,7 @@
 ---
 title: Python基本数据类型
+date: 2025-09-06
+categories: Python
 ---
 
 # Python基本数据类型
